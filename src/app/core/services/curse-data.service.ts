@@ -10,15 +10,7 @@ import { CurseFormCrearComponent } from '../../layouts/dashboard/pages/curses/co
 
 
 let CURSES_DB:Curse[] = [
-  { id: 1, 
-    nombre: 'Introducción a la Programación', 
-  },
-  { id: 2, 
-    nombre: 'Estructuras de Datos', 
-   },
-  { id: 3, 
-    nombre: 'Desarrollo Web', 
-  },
+  
   
 ];
 

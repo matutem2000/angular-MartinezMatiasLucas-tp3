@@ -3,77 +3,71 @@ import { Usuario } from '../../layouts/dashboard/pages/usuarios/models/usuarios.
 import { ModificarUsuarioComponent } from '../../layouts/dashboard/pages/usuarios/components/modificar-usuario/modificar-usuario.component';
 import { EliminarUsuarioComponent } from '../../layouts/dashboard/pages/usuarios/components/eliminar-usuario/eliminar-usuario.component';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
-import { Observable, delay, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, delay, map, mergeMap, of, switchMap } from 'rxjs';
 import { LoadingService } from './loading.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 
-let USERS_DB: Usuario[] = [
-  {
-    id: 1,
-    nombre: 'Juan',
-    apellido: 'Pérez',
-    email: 'juan@example.com',
-    password: 'clave123',
-    rol: 'estudiante'
-  },
-  {
-    id: 2,
-    nombre: 'María',
-    apellido: 'Gómez',
-    email: 'maria@example.com',
-    password: 'clave456',
-    rol: 'administrador'
-  },
-  {
-    id: 3,
-    nombre: 'Pedro',
-    apellido: 'Rodríguez',
-    email: 'pedro@example.com',
-    password: 'clave789',
-    rol: 'profesor'
-  }
-];
-
-
+let USERS_DB: Usuario[] = [];
+const URL_USERS=`${environment.apiURL}/users`;
 
 
 @Injectable()
 export class UserDataService {
 
-  constructor(public dialog: MatDialog, private loadingService: LoadingService){};
+  constructor(
+              public dialog: MatDialog, 
+              private loadingService: LoadingService,
+              private httpClient: HttpClient){};
 
  
 //obtener usuarios
   getUsuarios() {
-    return of (USERS_DB).pipe(delay(3000));
+   /* let headers = new HttpHeaders(); 
+
+  headers= headers.append('x-token', localStorage.getItem('token') || ''); */
+
+    return this.httpClient.get<Usuario[]>(URL_USERS
+     /*  , {
+      headers: headers,
+    } */
+    ).pipe(catchError(()=>{
+      alert("Error al cargar los usuarios");
+      return of(USERS_DB);
+    }));
+  
 }
 //crear usuarios
   createUser(payload: Usuario){
-    const nextId = USERS_DB.length > 0 ? Math.max(...USERS_DB.map(user => user.id)) + 1 : 1;
-    payload.id = nextId;
-    USERS_DB.push(payload);
-    return this.getUsuarios();
+    return this.httpClient
+    .post<Usuario>(URL_USERS, payload)
+    .pipe(mergeMap(()=> this.getUsuarios()));
   }
 
 
 // Eliminar usuario
+
 eliminarUsuario(usuario: Usuario): Observable<Usuario[]> {
-   //console.log('eliminar en user-data.service- apreté botón');
   const dialogRef = this.dialog.open(EliminarUsuarioComponent, {
     data: { usuario },
   });
-  
+
   return dialogRef.afterClosed().pipe(
-    map((eliminado: boolean) => {
+    switchMap((eliminado: boolean) => {
       if (eliminado) {
-        // Eliminar el usuario del dataSource
-        USERS_DB = USERS_DB.filter(u => u.id !== usuario.id);
+        // Si el usuario confirma la eliminación, realizar la solicitud HTTP DELETE
+        return this.httpClient.delete(`${URL_USERS}/${usuario.id}`).pipe(
+          // Obtener la lista actualizada de usuarios después de eliminar el usuario
+          switchMap(() => this.getUsuarios())
+        );
+      } else {
+        // Si el usuario cancela la eliminación, devolver la lista actual de usuarios sin cambios
+        return this.getUsuarios();
       }
-      return [...USERS_DB];
     })
   );
-
-}
+  }
 
 
 //Modificar usuario
@@ -84,19 +78,21 @@ modificarUsuario(usuario: Usuario): Observable<Usuario[]> {
   });
 
   return dialogRef.afterClosed().pipe(
-    map((usuarioModificado: Usuario) => {
+    switchMap((usuarioModificado: boolean) => {
       if (usuarioModificado) {
-        console.log('Datos del usuario modificado:', usuarioModificado);
-        // Modificar el usuario en el dataSource
-        USERS_DB = USERS_DB.map((u) =>
-          u.id === usuario.id ? { ...u, ...usuarioModificado } : u
+        // Si el usuario confirma la modificación, realizar la solicitud HTTP PUT
+        return this.httpClient.put<Usuario>(`${URL_USERS}/${usuario.id}`, usuarioModificado).pipe(
+          // Obtener la lista actualizada de usuarios después de modificar el usuario
+          switchMap(() => this.getUsuarios())
         );
-        console.log('El array nuevo de usuarios con la modificación', USERS_DB);
+      } else {
+        // Si el usuario cancela la modificación, devolver la lista actual de usuarios sin cambios
+        return this.getUsuarios();
       }
-      return [...USERS_DB];
     })
   );
 }
+
 
 //Obtener usuario por rol
 getUsuariosPorRol(rol: string): Observable<Usuario[]> {

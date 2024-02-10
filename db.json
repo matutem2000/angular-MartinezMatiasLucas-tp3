@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "nombre": "Juanssssssssss",
+      "apellido": "Pérez",
+      "email": "juan@example.com",
+      "password": "clave123",
+      "rol": "estudiante"
+    },
+    {
+      "id": "2",
+      "nombre": "María",
+      "apellido": "Gómez",
+      "email": "maria@example.com",
+      "password": "clave456",
+      "rol": "administrador"
+    },
+    {
+      "id": "4",
+      "nombre": "Mickey",
+      "apellido": "Mouse",
+      "email": "mmouse@example.com",
+      "password": "clave123",
+      "rol": "estudiante"
+    }
+  ],
+  "courses": [
+    {
+      "id": "1",
+      "nombre": "Introducción a la Programación"
+    },
+    {
+      "id": "2",
+      "nombre": "Estructuras de Datos"
+    },
+    {
+      "id": "3",
+      "nombre": "Desarrollo Web"
+    }
+  ]
+}

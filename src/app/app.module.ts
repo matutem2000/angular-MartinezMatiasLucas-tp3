@@ -13,6 +13,7 @@ import { AuthRoutingModule } from './layouts/auth/auth-routing.module';
 import { UsuariosRoutingModule } from './layouts/dashboard/pages/usuarios/usuarios-routing.module';
 import {MatIconModule} from '@angular/material/icon';
 import { SharedModule } from './shared/shared.module';
+import { HttpClientModule } from '@angular/common/http';
 
 
 @NgModule({
@@ -36,7 +37,8 @@ import { SharedModule } from './shared/shared.module';
     DashboardRoutingModule,
     UsuariosRoutingModule,
     MatIconModule,
-    SharedModule
+    SharedModule, 
+    HttpClientModule
   ],
   providers: [LoadingService],
   bootstrap: [AppComponent]
